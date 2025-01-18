@@ -3,8 +3,6 @@ import { env } from "~/env";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import github from "~/server/utils/github";
 
-// TODO: define user type here
-
 const UserSchema = z.object({
   name: z.string(),
   profileUrl: z.string(),
@@ -16,16 +14,20 @@ export const userRouter = createTRPCRouter({
   getAll: publicProcedure.output(z.array(UserSchema)).query(async () => {
     const userNames = env.USER_LIST;
 
-    const githubUsers = await Promise.all(
-      userNames.map((userName) => github.getUser(userName)),
+    const githubDataList = await Promise.all(
+      userNames.map(async (userName) => ({
+        user: await github.getUser(userName),
+        todaysEvents: await github.getAmountOfTodaysEvents(userName),
+      })),
     );
 
-    const users = githubUsers.map((githubUser) => {
+    const users = githubDataList.map((githubData) => {
+      console.log(githubData.user.login, githubData.todaysEvents);
       return {
-        name: githubUser.login,
-        profileUrl: githubUser.html_url,
-        imageUrl: githubUser.avatar_url,
-        hasCommitedToday: false,
+        name: githubData.user.login,
+        profileUrl: githubData.user.html_url,
+        imageUrl: githubData.user.avatar_url,
+        hasCommitedToday: githubData.todaysEvents > 0,
       } satisfies User;
     });
 
