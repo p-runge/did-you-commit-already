@@ -1,4 +1,4 @@
-import chromium from "@sparticuz/chromium";
+import chromium from "@sparticuz/chromium-min";
 import puppeteer from "puppeteer";
 import puppeteerCore, { type Page } from "puppeteer-core";
 import { env } from "~/env";
