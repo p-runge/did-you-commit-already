@@ -1,39 +1,37 @@
-import { Octokit } from "octokit";
-import puppeteer from "puppeteer";
+import puppeteer, { type Page } from "puppeteer";
 
-const octokit = new Octokit();
-
-const getUser = async (username: string) => {
+async function getElementBySelector(page: Page, selector: string) {
   try {
-    const { data } = await octokit.rest.users.getByUsername({
-      username,
-    });
-    return data;
-  } catch (e) {
-    console.error(`Error fetching user "${username}" from GitHub`);
-    console.error(e);
+    await page.waitForSelector(selector);
+    return await page.$(selector);
+  } catch (error) {
+    console.error("Error fetching the element:", error);
   }
-};
+}
 
-async function getHasContributedToday(username: string) {
+async function getData(username: string) {
   const profileUrl = `https://github.com/${username}`;
 
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
-  let todayLevel = null;
+  let imageUrl = "";
+  let hasContributedToday = false;
   try {
     // Navigate to the URL
     await page.goto(profileUrl, { waitUntil: "networkidle2" });
 
     // Wait for the element to appear (if needed)
-    await page.waitForSelector(".js-calendar-graph-table");
+    await Promise.all([
+      page.waitForSelector(".js-calendar-graph-table"),
+      page.waitForSelector(".avatar"),
+    ]);
 
-    // Get the content of the element
-    todayLevel = await page.evaluate(() => {
-      const germanTimezone = 2;
+    // todayLevel
+    const todayLevel = await page.evaluate(() => {
+      const timezoneOfChoice = 2; // Germany
       const today = new Date(
-        new Date().getTime() + germanTimezone * 60 * 60 * 1000,
+        new Date().getTime() + timezoneOfChoice * 60 * 60 * 1000,
       )
         .toISOString()
         .split("T")[0]!;
@@ -47,6 +45,16 @@ async function getHasContributedToday(username: string) {
 
       return todayCell.getAttribute("data-level");
     });
+    hasContributedToday = parseInt(todayLevel?.toString() ?? "") > 0;
+
+    // imageUrl
+    const avatar = await getElementBySelector(page, ".avatar");
+    if (avatar) {
+      imageUrl =
+        (await avatar.evaluate((img) => {
+          return img?.getAttribute("src");
+        })) ?? "";
+    }
   } catch (error) {
     console.error("Error fetching the dynamic element:", error);
   } finally {
@@ -54,11 +62,13 @@ async function getHasContributedToday(username: string) {
     await browser.close();
   }
 
-  return parseInt(todayLevel?.toString() ?? "") > 0;
+  return {
+    imageUrl,
+    hasContributedToday,
+  };
 }
 
 const github = {
-  getUser,
-  getHasContributedToday,
+  getData,
 };
 export default github;

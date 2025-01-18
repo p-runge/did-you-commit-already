@@ -14,26 +14,15 @@ export const userRouter = createTRPCRouter({
   getAll: publicProcedure.output(z.array(UserSchema)).query(async () => {
     const userNames = env.USER_LIST;
 
-    const githubDataList = (
+    const users = (
       await Promise.all(
         userNames.map(async (userName) => ({
-          user: await github.getUser(userName),
-          hasContributedToday: await github.getHasContributedToday(userName),
+          name: userName,
+          profileUrl: `https://github.com/${userName}`,
+          ...(await github.getData(userName)),
         })),
       )
-    ).filter((githubData) => githubData.user) as {
-      user: NonNullable<Awaited<ReturnType<typeof github.getUser>>>;
-      hasContributedToday: boolean;
-    }[];
-
-    const users = githubDataList.map((githubData) => {
-      return {
-        name: githubData.user.login,
-        profileUrl: githubData.user.html_url,
-        imageUrl: githubData.user.avatar_url,
-        hasContributedToday: githubData.hasContributedToday,
-      } satisfies User;
-    });
+    ).filter((githubData) => githubData.imageUrl);
 
     return users;
   }),
