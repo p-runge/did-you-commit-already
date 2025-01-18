@@ -1,7 +1,8 @@
-import { HydrateClient } from "~/trpc/server";
+import { api, HydrateClient } from "~/trpc/server";
 
 export default async function Home() {
-  // TODO: fetch user list from here using trpc
+  const users = await api.user.getAll();
+  console.log("users", users);
 
   return (
     <HydrateClient>
