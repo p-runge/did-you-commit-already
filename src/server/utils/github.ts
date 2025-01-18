@@ -51,7 +51,7 @@ async function getData(username: string) {
     const todayLevel = (await page.evaluate(() => {
       const timezoneOfChoice = 2; // Germany
       const today = new Date(
-        new Date().getTime() + timezoneOfChoice * 60 * 60 * 1000,
+        new Date().getTime() + (timezoneOfChoice - 1) * 60 * 60 * 1000,
       )
         .toISOString()
         .split("T")[0]!;
