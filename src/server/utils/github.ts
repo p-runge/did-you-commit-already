@@ -4,11 +4,15 @@ import puppeteer from "puppeteer";
 const octokit = new Octokit();
 
 const getUser = async (username: string) => {
-  const { data } = await octokit.rest.users.getByUsername({
-    username,
-  });
-
-  return data;
+  try {
+    const { data } = await octokit.rest.users.getByUsername({
+      username,
+    });
+    return data;
+  } catch (e) {
+    console.error(`Error fetching user "${username}" from GitHub`);
+    console.error(e);
+  }
 };
 
 async function getHasContributedToday(username: string) {
@@ -50,7 +54,7 @@ async function getHasContributedToday(username: string) {
     await browser.close();
   }
 
-  return todayLevel !== "0";
+  return parseInt(todayLevel?.toString() ?? "") > 0;
 }
 
 const github = {
