@@ -18,7 +18,7 @@ export function User({ user }: { user: User }) {
             <div
               className={
                 "absolute right-2 top-0 h-5 w-5 rounded-full " +
-                (user.hasCommitedToday ? "bg-green-600" : "bg-red-600")
+                (user.hasContributedToday ? "bg-green-600" : "bg-red-600")
               }
             ></div>
           }

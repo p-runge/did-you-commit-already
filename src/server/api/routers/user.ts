@@ -7,7 +7,7 @@ const UserSchema = z.object({
   name: z.string(),
   profileUrl: z.string(),
   imageUrl: z.string(),
-  hasCommitedToday: z.boolean(),
+  hasContributedToday: z.boolean(),
 });
 export type User = z.infer<typeof UserSchema>;
 export const userRouter = createTRPCRouter({
@@ -17,17 +17,17 @@ export const userRouter = createTRPCRouter({
     const githubDataList = await Promise.all(
       userNames.map(async (userName) => ({
         user: await github.getUser(userName),
-        todaysEvents: await github.getAmountOfTodaysEvents(userName),
+        hasContributedToday: await github.getHasContributedToday(userName),
       })),
     );
 
     const users = githubDataList.map((githubData) => {
-      console.log(githubData.user.login, githubData.todaysEvents);
+      console.log(githubData.user.login, githubData.hasContributedToday);
       return {
         name: githubData.user.login,
         profileUrl: githubData.user.html_url,
         imageUrl: githubData.user.avatar_url,
-        hasCommitedToday: githubData.todaysEvents > 0,
+        hasContributedToday: githubData.hasContributedToday,
       } satisfies User;
     });
 
