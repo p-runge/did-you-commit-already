@@ -9,7 +9,7 @@ const UserSchema = z.object({
   imageUrl: z.string(),
   hasCommitedToday: z.boolean(),
 });
-type User = z.infer<typeof UserSchema>;
+export type User = z.infer<typeof UserSchema>;
 export const userRouter = createTRPCRouter({
   getAll: publicProcedure.output(z.array(UserSchema)).query(async () => {
     const userNames = env.USER_LIST;
