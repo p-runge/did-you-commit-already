@@ -1,4 +1,6 @@
-import puppeteer, { type Page } from "puppeteer";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer";
+import puppeteerCore, { type Page } from "puppeteer-core";
 
 async function getElementBySelector(page: Page, selector: string) {
   try {
@@ -12,7 +14,23 @@ async function getElementBySelector(page: Page, selector: string) {
 async function getData(username: string) {
   const profileUrl = `https://github.com/${username}`;
 
-  const browser = await puppeteer.launch();
+  let browser;
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("Development browser: ");
+    browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: true,
+    });
+  } else {
+    console.log("Development production: ");
+    browser = await puppeteerCore.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
+  }
   const page = await browser.newPage();
 
   let imageUrl = "";
@@ -28,7 +46,9 @@ async function getData(username: string) {
     ]);
 
     // todayLevel
-    const todayLevel = await page.evaluate(() => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const todayLevel = (await page.evaluate(() => {
       const timezoneOfChoice = 2; // Germany
       const today = new Date(
         new Date().getTime() + timezoneOfChoice * 60 * 60 * 1000,
@@ -44,11 +64,11 @@ async function getData(username: string) {
       if (!todayCell) return null;
 
       return todayCell.getAttribute("data-level");
-    });
+    })) as string;
     hasContributedToday = parseInt(todayLevel?.toString() ?? "") > 0;
 
     // imageUrl
-    const avatar = await getElementBySelector(page, ".avatar");
+    const avatar = await getElementBySelector(page as Page, ".avatar");
     if (avatar) {
       imageUrl =
         (await avatar.evaluate((img) => {
