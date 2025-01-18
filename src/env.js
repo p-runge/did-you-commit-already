@@ -9,6 +9,7 @@ export const env = createEnv({
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
     USER_LIST: z.string().transform((val) => val.split(",")),
+    TIMEZONE: z.string().transform((val) => parseInt(val) || 0),
   },
 
   /**
@@ -27,6 +28,7 @@ export const env = createEnv({
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
     USER_LIST: process.env.USER_LIST,
+    TIMEZONE: process.env.TIMEZONE,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

@@ -1,6 +1,7 @@
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer";
 import puppeteerCore, { type Page } from "puppeteer-core";
+import { env } from "~/env";
 
 async function getElementBySelector(page: Page, selector: string) {
   try {
@@ -48,10 +49,9 @@ async function getData(username: string) {
     // todayLevel
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const todayLevel = (await page.evaluate(() => {
-      const timezoneOfChoice = 2; // Germany
+    const todayLevel = (await page.evaluate((timezone) => {
       const today = new Date(
-        new Date().getTime() + (timezoneOfChoice - 1) * 60 * 60 * 1000,
+        new Date().getTime() + (timezone - 1) * 60 * 60 * 1000,
       )
         .toISOString()
         .split("T")[0]!;
@@ -64,7 +64,7 @@ async function getData(username: string) {
       if (!todayCell) return null;
 
       return todayCell.getAttribute("data-level");
-    })) as string;
+    }, env.TIMEZONE)) as string;
     hasContributedToday = parseInt(todayLevel?.toString() ?? "") > 0;
 
     // imageUrl

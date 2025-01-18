@@ -1,12 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import { env } from "~/env";
 import { type User } from "~/server/api/routers/user";
 import { cn } from "~/server/utils/cn";
 
 export function User({ user }: { user: User }) {
-  const timezoneOfChoice = 2; // Germany
   const now = new Date();
-  const is11PMOrLater = now.getUTCHours() + timezoneOfChoice - 1 >= 23;
+  const is11PMOrLater = now.getUTCHours() + env.TIMEZONE - 1 >= 23;
   const isGlowing = is11PMOrLater && !user.hasContributedToday;
 
   return (
