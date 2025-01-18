@@ -8,6 +8,19 @@ export default {
       fontFamily: {
         sans: ["var(--font-geist-sans)", ...fontFamily.sans],
       },
+      keyframes: {
+        glow: {
+          "0%, 100%": {
+            ["box-shadow"]: "0 0 20px 20px rgba(255, 0, 0, 0)",
+          },
+          "50%": {
+            ["box-shadow"]: "0 0 20px 20px rgba(255, 0, 0, 0.5)",
+          },
+        },
+      },
+      animation: {
+        glow: "glow 1s infinite",
+      },
     },
     colors: {
       white: "#ffffff",
@@ -21,6 +34,7 @@ export default {
         3: "#26a641",
         4: "#39d353", // light
       },
+      danger: "#ff0000",
     },
   },
   plugins: [],
