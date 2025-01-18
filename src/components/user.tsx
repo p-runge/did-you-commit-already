@@ -1,29 +1,32 @@
 import Image from "next/image";
+import Link from "next/link";
 import { type User } from "~/server/api/routers/user";
 
 export function User({ user }: { user: User }) {
   return (
-    <div className="flex">
+    <Link target="_blank" href={user.profileUrl} className="flex">
       <figure>
         <div className="relative">
           <Image
             src={user.imageUrl}
             alt={`Could not load image for user profile ${user.profileUrl}`}
-            height={100}
-            width={100}
+            height={200}
+            width={200}
             className="rounded-full"
           />
-          <figcaption className="gap-5 text-center">{user.name}</figcaption>
+          <figcaption className="gap-5 text-center text-2xl">
+            {user.name}
+          </figcaption>
           {
             <div
               className={
-                "absolute right-2 top-0 h-5 w-5 rounded-full " +
-                (user.hasContributedToday ? "bg-green-600" : "bg-red-600")
+                "absolute right-2 top-0 h-12 w-12 rounded-full " +
+                (user.hasContributedToday ? "bg-primary-4" : "bg-primary-0")
               }
             ></div>
           }
         </div>
       </figure>
-    </div>
+    </Link>
   );
 }
