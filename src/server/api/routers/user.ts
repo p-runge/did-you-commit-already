@@ -17,9 +17,13 @@ export const userRouter = createTRPCRouter({
     const users = (
       await Promise.all(
         userNames.map(async (userName) => {
-          const githubUser = await github.getUser(userName);
-          const hasContributedToday =
-            await github.hasUserCommitedToday(userName);
+          const [githubUser, hasContributedToday] = await Promise.all([
+            github.getUser(userName),
+            github.hasUserCommitedToday(userName),
+          ]);
+          if (githubUser === undefined || hasContributedToday === undefined) {
+            return undefined;
+          }
 
           return {
             name: githubUser.userName,
@@ -29,7 +33,7 @@ export const userRouter = createTRPCRouter({
           };
         }),
       )
-    ).filter((githubData) => githubData.imageUrl);
+    ).filter((user) => user) as User[];
 
     return users;
   }),

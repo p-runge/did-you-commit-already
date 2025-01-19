@@ -1,6 +1,6 @@
-import { env } from "~/env";
 import { Octokit } from "octokit";
 import { z } from "zod";
+import { env } from "~/env";
 
 const octokit = new Octokit({
   auth: env.GITHUB_TOKEN,
@@ -14,30 +14,47 @@ const UserSchema = z.object({
 });
 type User = z.infer<typeof UserSchema>;
 async function getUser(username: string) {
-  const { data } = await octokit.rest.users.getByUsername({
-    username,
-  });
-  return {
-    userName: data.login,
-    imageUrl: data.avatar_url,
-    profileUrl: data.html_url,
-    hasContributedToday: false,
-  } satisfies Exclude<User, "hasContributedToday">;
+  try {
+    const { data: githubData } = await octokit.rest.users.getByUsername({
+      username,
+    });
+    const { success, data, error } = UserSchema.omit({
+      hasContributedToday: true,
+    }).safeParse({
+      userName: githubData.login,
+      imageUrl: githubData.avatar_url,
+      profileUrl: githubData.html_url,
+      hasContributedToday: false,
+    } satisfies Exclude<User, "hasContributedToday">);
+
+    if (!success) {
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error getting user", username, error);
+    return undefined;
+  }
 }
 
 async function hasUserCommitedToday(username: string) {
-  const { data } = await octokit.rest.activity.listPublicEventsForUser({
-    username,
-  });
+  try {
+    const { data } = await octokit.rest.activity.listPublicEventsForUser({
+      username,
+    });
 
-  const todaysEvents = data.filter(
-    (event) =>
-      event.created_at &&
-      new Date(event.created_at).getDate() === new Date().getDate(),
-  );
-  console.log("todaysEvents", todaysEvents);
+    const todaysEvents = data.filter(
+      (event) =>
+        event.created_at &&
+        new Date(event.created_at).getDate() === new Date().getDate(),
+    );
 
-  return todaysEvents.length > 0;
+    return todaysEvents.length > 0;
+  } catch (error) {
+    console.error("Error getting user", username, error);
+    return undefined;
+  }
 }
 
 const github = {
